@@ -1,21 +1,57 @@
 <!DOCTYPE html>
-<html lang>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
     <title>StudySprint</title>
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-<h1>StudySprint</h1>
-<p>A simple study timer for students to stay focused.</p>
+<div class="container">
 
-<div>
-    <h2 id="timer">25:00</h2>
+    <h1>StudySprint</h1>
+    <p class="subtitle">A simple and cute study timer for students to stay focused!</p>
+
+    <!-- TIMER -->
+    <div class="card">
+        <h2 id="timer">25:00</h2>
+
+        <div class="button-group">
+            <button type="button" onclick="startTimer()">Start</button>
+            <button type="button" onclick="resetTimer()">Reset</button>
+            <button type="button" onclick="saveSession()">Save</button>
+            <button type="button" onclick="pauseTimer()">Pause</button>
+        </div>
+    </div>
+
+    <!-- LOGIN -->
+    <div class="card">
+        <h3>Login</h3>
+
+        <input id="username" type="text" placeholder="Username" required autocomplete="username">
+        <input id="password" type="password" placeholder="Password" required autocomplete="current-password">
+
+        <div class="button-group">
+            <button type="button" onclick="login()">Login</button>
+            <button type="button" onclick="register()">Register</button>
+        </div>
+    </div>
+
+    <!-- SESSIONS -->
+  <div class="card">
+    <h3>Saved Sessions</h3>
+
+    <!-- 🔍 SEARCH (ADD THIS) -->
+    <input id="searchInput" type="text" placeholder="Search by user or duration">
+    <button type="button" onclick="searchSessions()">Search</button>
+
+    <ul id="sessionList"></ul>
+
+    <button type="button" onclick="loadSessions()">Load Sessions</button>
 </div>
 
-<button type="button" onclick="startTimer()">Start</button>
-<button type="button" onclick="resetTimer()">Reset</button>
+</div>
 
 <script src="script.js"></script>
 
