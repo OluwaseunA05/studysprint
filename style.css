@@ -1,17 +1,80 @@
 body {
     font-family: Arial, sans-serif;
+    background-color: #F4C2C2; /* your original pink */
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    max-width: 500px;
+    margin: 60px auto;
     text-align: center;
-    margin-top: 100px;
-    background-color: #F4C2C2;
 }
 
 h1 {
+    margin-bottom: 5px;
     color: #333;
 }
 
+.subtitle {
+    margin-bottom: 30px;
+    color: #444;
+}
+
+.card {
+    background: #fff0f0; /* soft pink card */
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+#timer {
+    font-size: 40px;
+    margin-bottom: 15px;
+    color: #333;
+}
+
+.button-group {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
 button {
-    padding: 12px 20px;
-    margin: 10px;
-    font-size: 16px;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 8px;
+    background-color: #e07a7a; /* darker pink */
+    color: white;
+    font-size: 14px;
     cursor: pointer;
+    transition: 0.2s;
+}
+
+button:hover {
+    background-color: #c95f5f;
+}
+
+input {
+    display: block;
+    width: 90%;
+    margin: 10px auto;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #d99;
+    background-color: #fff;
+}
+
+ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+li {
+    margin: 12px 0;
+    background: #fff0f0;
+    padding: 12px;
+    border-radius: 8px;
 }
