@@ -11,21 +11,30 @@ mongoose.connect('mongodb://localhost:27017/studysprint')
   .then(() => console.log('MongoDB connected'))
   .catch(err => console.error(err));
 
-// Model
 const Session = mongoose.model('Session', {
-  user_id: Number,
+  user_id: String,
   duration: Number,
+  name: String,
   date: { type: Date, default: Date.now }
 });
 
-// Routes
+const User = mongoose.model('User', {
+  username: String,
+  password: String
+});
+
+
 app.post('/sessions', async (req, res) => {
   try {
-    const { user_id, duration } = req.body;
+    const { user_id, duration, name } = req.body;
 
-    const newSession = new Session({ user_id, duration });
+    const newSession = new Session({
+      user_id,
+      duration,
+      name
+    });
+
     await newSession.save();
-
     res.json({ message: 'Session saved!' });
   } catch (err) {
     console.error(err);
@@ -35,7 +44,7 @@ app.post('/sessions', async (req, res) => {
 
 app.get('/sessions', async (req, res) => {
   try {
-    const sessions = await Session.find();
+    const sessions = await Session.find().sort({ date: -1 });
     res.json(sessions);
   } catch (err) {
     console.error(err);
@@ -45,29 +54,12 @@ app.get('/sessions', async (req, res) => {
 
 app.delete('/sessions/:id', async (req, res) => {
   try {
-    const id = req.params.id;
-
-    console.log("Deleting ID:", id);
-
-    const deleted = await Session.findByIdAndDelete(id);
-
-    if (!deleted) {
-      return res.json({ message: "Not found" });
-    }
-
+    await Session.findByIdAndDelete(req.params.id);
     res.json({ message: "Deleted successfully" });
-
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Error deleting" });
   }
-});3
-app.get('/', (req, res) => {
-  res.send('Backend is running');
-});
-
-app.listen(3000, () => {
-  console.log('Server running on port 3000');
 });
 
 app.put('/sessions/:id', async (req, res) => {
@@ -87,11 +79,7 @@ app.put('/sessions/:id', async (req, res) => {
   }
 });
 
-const User = mongoose.model('User', {
-  username: String,
-  password: String
-});
-
+// REGISTER
 app.post('/register', async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -116,4 +104,12 @@ app.post('/login', async (req, res) => {
   } else {
     res.status(401).json({ message: "Invalid credentials" });
   }
+});
+
+app.get('/', (req, res) => {
+  res.send('Backend is running');
+});
+
+app.listen(3000, () => {
+  console.log('Server running on port 3000');
 });
