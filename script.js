@@ -2,58 +2,61 @@ let time = 1500;
 let timer = null;
 
 function updateDisplay() {
-    let minutes = Math.floor(time / 60);
-    let seconds = time % 60;
+  let minutes = Math.floor(time / 60);
+  let seconds = time % 60;
 
-    document.getElementById("timer").innerHTML =
-        minutes + ":" + (seconds < 10 ? "0" + seconds : seconds);
+  document.getElementById("timer").innerHTML =
+    minutes + ":" + (seconds < 10 ? "0" + seconds : seconds);
 }
 
 function startTimer() {
-    if (timer !== null) return;
+  if (timer !== null) return;
 
-    timer = setInterval(function () {
-        time--;
-        updateDisplay();
+  timer = setInterval(() => {
+    time--;
+    updateDisplay();
 
-        if (time <= 0) {
-            clearInterval(timer);
-            timer = null;
+    if (time <= 0) {
+      clearInterval(timer);
+      timer = null;
+      saveSession();
+    }
+  }, 1000);
+}
 
-            saveSession(); 
-        }
-    }, 1000);
+function pauseTimer() {
+  clearInterval(timer);
+  timer = null;
 }
 
 function resetTimer() {
-    clearInterval(timer);
-    timer = null;
-    time = 1500;
-    updateDisplay();
+  clearInterval(timer);
+  timer = null;
+  time = 1500;
+  updateDisplay();
 }
 
 function saveSession() {
-    console.log("clicked");
+  const input = document.getElementById("sessionName");
+  const sessionName = input.value;
 
-    fetch('http://localhost:3000/sessions', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-  user_id: 1,
-  duration: time
-})
+  fetch('http://localhost:3000/sessions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      user_id: localStorage.getItem("username") || "guest",
+      duration: time,
+      name: sessionName
     })
-    .then(res => res.json())
-    .then(data => {
-        console.log(data);
-        alert("Session saved!");
-    })
-    .catch(err => console.error(err));
+  })
+  .then(res => res.json())
+  .then(() => {
+    alert("Session saved!");
+    input.value = "";
+    loadSessions();
+  })
+  .catch(err => console.error(err));
 }
-
-updateDisplay();
 
 function loadSessions() {
   fetch('http://localhost:3000/sessions')
@@ -69,92 +72,40 @@ function loadSessions() {
         const seconds = session.duration % 60;
         const formattedTime = `${minutes}:${seconds < 10 ? "0" + seconds : seconds}`;
 
+        const date = new Date(session.date);
+
         li.innerHTML = `
-          User: ${session.user_id} | Duration: ${formattedTime}
-          <button type="button" onclick='editSession("${session._id}", ${session.duration})'>Edit</button>
-          <button type="button" onclick='deleteSession("${session._id}")'>Delete</button>
+          <strong>${session.name || "Untitled Session"}</strong><br>
+          Duration: ${formattedTime}<br>
+          <small>${date.toLocaleString()}</small>
+
+          <button onclick='editSession("${session._id}", ${session.duration})'>Edit</button>
+          <button onclick='deleteSession("${session._id}")'>Delete</button>
         `;
 
         list.appendChild(li);
       });
-    })
-    .catch(err => console.error(err));
-}
-
-function pauseTimer() {
-    clearInterval(timer);
-    timer = null;
+    });
 }
 
 function deleteSession(id) {
-  console.log("DELETE CLICKED:", id);
-
   fetch(`http://localhost:3000/sessions/${id}`, {
     method: 'DELETE'
   })
-  .then(res => res.json())
-  .then(data => {
-    console.log(data);
-    alert("Session deleted!");
-    loadSessions();
-  })
-  .catch(err => console.error(err));
+  .then(() => loadSessions());
 }
 
 function editSession(id, currentDuration) {
   const newDuration = prompt("Enter new duration:", currentDuration);
-
-  if (newDuration === null || newDuration === "") return;
+  if (!newDuration) return;
 
   fetch(`http://localhost:3000/sessions/${id}`, {
     method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      duration: Number(newDuration) 
-    })
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ duration: Number(newDuration) })
   })
-  .then(res => res.json())
-  .then(data => {
-    console.log("UPDATED:", data);
-    alert("Session updated!");
-    loadSessions();
-  })
-  .catch(err => console.error(err));
+  .then(() => loadSessions());
 }
-
-function register() {
-  const username = document.getElementById("username").value;
-  const password = document.getElementById("password").value;
-
-  fetch('http://localhost:3000/register', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ username, password })
-  })
-  .then(res => res.json())
-  .then(data => alert(data.message));
-}
-
-function login() {
-  const username = document.getElementById("username").value;
-  const password = document.getElementById("password").value;
-
-  fetch('http://localhost:3000/login', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ username, password })
-  })
-  .then(res => res.json())
-  .then(data => alert(data.message))
-  .catch(() => alert("Login failed"));
-}
-
 
 function searchSessions() {
   const query = document.getElementById("searchInput").value.toLowerCase();
@@ -166,9 +117,11 @@ function searchSessions() {
       list.innerHTML = "";
 
       const filtered = data.filter(session => {
+        const date = new Date(session.date).toLocaleDateString();
+
         return (
-          session.user_id.toString().includes(query) ||
-          session.duration.toString().includes(query)
+          (session.name && session.name.toLowerCase().includes(query)) ||
+          date.includes(query)
         );
       });
 
@@ -179,12 +132,61 @@ function searchSessions() {
         const seconds = session.duration % 60;
         const formattedTime = `${minutes}:${seconds < 10 ? "0" + seconds : seconds}`;
 
+        const date = new Date(session.date);
+
         li.innerHTML = `
-          User: ${session.user_id} | Duration: ${formattedTime}
+          <strong>${session.name || "Untitled Session"}</strong><br>
+          Duration: ${formattedTime}<br>
+          <small>${date.toLocaleString()}</small>
         `;
 
         list.appendChild(li);
       });
-    })
-    .catch(err => console.error(err));
+    });
 }
+
+function login() {
+  const username = document.getElementById("username").value;
+  const password = document.getElementById("password").value;
+
+  fetch('http://localhost:3000/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, password })
+  })
+  .then(res => {
+    if (!res.ok) throw new Error();
+    return res.json();
+  })
+  .then(() => {
+    localStorage.setItem("username", username);
+    alert("Login successful!");
+    window.location.href = "index.html";
+  })
+  .catch(() => alert("Login failed"));
+}
+
+function register() {
+  const username = document.getElementById("username").value;
+  const password = document.getElementById("password").value;
+
+  fetch('http://localhost:3000/register', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, password })
+  })
+  .then(res => res.json())
+  .then(data => alert(data.message));
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const input = document.getElementById("sessionName");
+
+  if (input) {
+    input.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") saveSession();
+    });
+  }
+});
+
+updateDisplay();
